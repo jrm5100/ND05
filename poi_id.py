@@ -73,24 +73,15 @@ labels, features = targetFeatureSplit(data)
 
 #Other classifiers run in the notebook file
 from sklearn.pipeline import make_pipeline
-from sklearn.grid_search import GridSearchCV
-from sklearn.preprocessing import Imputer
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Imputer
 from sklearn.feature_selection import SelectKBest
 from sklearn.naive_bayes import GaussianNB
-from sklearn.cross_validation import StratifiedShuffleSplit
 
-sss_train = StratifiedShuffleSplit(labels, 30, test_size=0.3, random_state=0)
+clf = make_pipeline(Imputer(),
+                    StandardScaler(),
+                    SelectKBest(k=7),
+                    GaussianNB())
 
-pipe = make_pipeline(Imputer(), StandardScaler(), SelectKBest(), GaussianNB())
-parameters = {'selectkbest__k':range(3,18)}
-
-clf = GridSearchCV(pipe, parameters, cv=sss_train)
-clf.fit(features, labels)
-clf = clf.best_estimator_
-
-selected_features = clf.get_params()['selectkbest'].get_support(indices=True)
-print([features_list[i+1] for i in selected_features]) #add 1 to ignore 'poi'
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall 
 ### using our testing script. Check the tester.py script in the final project
@@ -100,8 +91,8 @@ print([features_list[i+1] for i in selected_features]) #add 1 to ignore 'poi'
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import cross_val_score
-sss_test = StratifiedShuffleSplit(labels, 1000, test_size=0.3, random_state=0)
+from sklearn.cross_validation import cross_val_score, StratifiedShuffleSplit
+sss_test = StratifiedShuffleSplit(labels, 1000, test_size=0.3, random_state=42)
 precision = cross_val_score(clf, features, labels, 'precision', sss_test)
 recall = cross_val_score(clf, features, labels, 'recall', sss_test)
 mean = lambda a: sum(a)/len(a)
